@@ -3,6 +3,7 @@ package githubarchive
 
 import java.io.PrintWriter
 
+import com.danieltrinh.githubanalysis.stores.Store
 import com.ning.http.client.{HttpResponseStatus, AsyncHandler, Response}
 import dispatch._
 import com.github.nscala_time.time.Imports._
@@ -15,8 +16,7 @@ import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 import spray.caching._
 
-object GithubArchiveIngestor {
-
+object GithubArchiveIngestor extends App {
   /**
    * Valid months: 1-12
    * Valid days: 1-31
@@ -51,6 +51,12 @@ object GithubArchiveIngestor {
   def writeDataToStore(events: HourlyData)(implicit store: Store[String]): Future[Unit] = {
     store.insert(events.path, events.data)
   }
+
+  def oneDayOfHours(date: DateTime): List[DateTime] = {
+    (0 to 23).foldLeft(List[DateTime]()) { (accu, elem) =>
+      date.withHour(elem) :: accu
+    }
+  }
 }
 
 case class HourlyData(dateTime: DateTime, data: String) {
@@ -61,63 +67,6 @@ case class HourlyData(dateTime: DateTime, data: String) {
 
 object HourlyData {
   def filePrefix(dateTime: DateTime): String = s"${dateTime.toString("yyyy-MM-dd")}-${dateTime.hour.get()}"
-}
-
-object DefaultHdfsStore {
-  val store = HdfsStore()
-  def apply = store
-}
-
-case class InMemoryStore[T](cache: Cache[T])(implicit ctx: ExecutionContext) extends Store[T] {
-  def insert(path: String, data: T): Future[Unit] = {
-    cache(path) {
-      Future.successful(data)
-    }.map(_ => ())
-  }
-  def exists(path: String): Future[Boolean] = {
-    cache.get(path) match {
-      case Some(x) => Future.successful(true)
-      case None => Future.successful(false)
-    }
-  }
-}
-
-case class HdfsStore(conf: Configuration = new Configuration()) extends Store[String] {
-  val filesystem = {
-    FileSystem.get(conf)
-  }
-
-  def insert(path: String, data: String): Future[Unit] = {
-    val fs = filesystem
-
-    val output = fs.create(new Path(path))
-    val writer = new PrintWriter(output)
-
-    Try(writer.write(data)) match {
-      case Success(_) =>
-        writer.close()
-        Future.successful(())
-      case Failure(error) =>
-        writer.close()
-        Future.failed(error)
-    }
-  }
-
-  def exists(path: String): Future[Boolean] = {
-    val fs = filesystem
-    Try(fs.exists(new Path(path))) match {
-      case Success(bool) =>
-        Future.successful(bool)
-      case Failure(error) =>
-        Future.failed(error)
-    }
-  }
-}
-
-
-trait Store[T] {
-  def insert(path: String, data: T): Future[Unit]
-  def exists(path: String): Future[Boolean]
 }
 
 case class Repo(url: String, name: String, id: Long)

@@ -43,3 +43,6 @@ ssh -L 7180:localhost:7180 root@104.236.59.249 -N
 # Add supergroup for accessing hdfs
 groupadd supergroup
 usermod -a -G supergroup root
+
+# Ignore overcommitment memory issues. This is a hack.
+echo 1 > /proc/sys/vm/overcommit_memory

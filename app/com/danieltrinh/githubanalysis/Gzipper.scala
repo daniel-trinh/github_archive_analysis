@@ -23,4 +23,5 @@ object Gzipper {
         new InputStreamReader(
           new GZIPInputStream(stream), encoding)))
   }
+
 }
