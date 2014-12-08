@@ -1,17 +1,16 @@
 ### Disables ssh password logins
 echo 'PermitRootLogin without-password' >> /etc/ssh/sshd_config
+echo 'PasswordAuthentication no' >> /etc/ssh/sshd_config
+
 # Grabs sshd process id
 SSHD_PID="$(ps auxw | grep "/usr/sbin/sshd" | awk '{print $2}' |  sed -n '1 p')"
 kill -HUP $SSHD_PID
 
-# install wget
 yum -y install wget
-# install sbt
 yum -y localinstall https://dl.bintray.com/sbt/rpm/sbt-0.13.7.rpm
-# install git
 yum -y install git
-# install netcat
 yum -y install nc
+yum -y install unzip
 
 # Increase sbt size
 export SBT_OPTS="-Xmx512M -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=512M -Xss2M  -Duser.timezone=GMT"
@@ -46,3 +45,36 @@ usermod -a -G supergroup root
 
 # Ignore overcommitment memory issues. This is a hack.
 echo 1 > /proc/sys/vm/overcommit_memory
+
+# Setup confd to share config across nodes
+wget https://github.com/kelseyhightower/confd/releases/download/v0.6.3/confd-0.6.3-linux-amd64
+mv confd-0.6.3-linux-amd64 /usr/local/bin/confd
+chmod +x /usr/local/bin/confd
+
+# Setup consul for confd backend
+wget https://dl.bintray.com/mitchellh/consul/0.4.1_linux_amd64.zip
+unzip 0.4.1_linux_amd64.zip
+mv consul /usr/local/bin/consul
+chmod +x /usr/local/bin/consul
+/bin/rm 0.4.1_linux_amd64.zip
+
+# Create data folder for consul
+mkdir /etc/consul
+
+# Run consul in the background
+HOST=`hostname`
+if [[ $HOST == "hadoop2.danieltrinh.com" ]]; then
+  # Server
+  consul agent -server -data-dir /etc/consul >> /var/log/consul 2>&1 &
+elif [[ $HOST == "hadoop3.danieltrinh.com" ]]; then
+  # Leader and Server
+  consul agent -bootstrap -server -data-dir /etc/consul >> /var/log/consul 2>&1 &
+else
+  # Client
+  consul agent -data-dir /etc/consul >> /var/log/consul 2>&1 &
+fi
+
+# There should probably be a better way of joining the cluster, but this works for now
+consul join 10.132.164.226:8301
+
+sudo mkdir -p /etc/confd/{conf.d,templates}

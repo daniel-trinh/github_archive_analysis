@@ -1,4 +1,4 @@
-package com.danieltrinh.githubanalysis.stores
+package ingestor.stores
 
 import scala.concurrent.Future
 

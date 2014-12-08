@@ -1,4 +1,4 @@
-package com.danieltrinh.githubanalysis.stores
+package ingestor.stores
 
 import dispatch._
 import spray.caching.Cache

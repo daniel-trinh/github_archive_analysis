@@ -1,4 +1,5 @@
-package com.danieltrinh.githubanalysis.stores
+package ingestor.stores
+
 import java.io.PrintWriter
 
 import dispatch._

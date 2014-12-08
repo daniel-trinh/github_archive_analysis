@@ -1,12 +1,12 @@
-package githubarchive
-
+package ingestor
 
 import java.io.PrintWriter
 
-import com.danieltrinh.githubanalysis.stores.Store
+import stores.Store
 import com.ning.http.client.{HttpResponseStatus, AsyncHandler, Response}
 import dispatch._
 import com.github.nscala_time.time.Imports._
+
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{Path, FileSystem}
 import org.joda.time.DateTime
@@ -16,7 +16,7 @@ import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 import spray.caching._
 
-object GithubArchiveIngestor extends App {
+object GithubArchiveIngestor {
   /**
    * Valid months: 1-12
    * Valid days: 1-31
