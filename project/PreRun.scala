@@ -12,6 +12,9 @@ package object PreRun {
                   |import scalax.io._
                   |import githubarchive._
                   |
+                  |import org.apache.hadoop.conf.Configuration
+                  |import org.apache.hadoop.fs.{Path, FileSystem}
+                  |
                   |// Macro bullshit
                   |val universe: scala.reflect.runtime.universe.type = scala.reflect.runtime.universe
                   |import universe._

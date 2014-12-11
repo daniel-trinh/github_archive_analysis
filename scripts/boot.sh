@@ -12,6 +12,10 @@ yum -y install git
 yum -y install nc
 yum -y install unzip
 
+# Set environment to production. This should probably in conf.d
+# TODO: move to conf.d
+echo 'production' >> /etc/env
+
 # Increase sbt size
 export SBT_OPTS="-Xmx512M -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=512M -Xss2M  -Duser.timezone=GMT"
 export HADOOP_HOME="/opt/cloudera/parcels/CDH/lib/hadoop/etc/hadoop"
@@ -25,6 +29,7 @@ sudo ./cloudera-manager-installer.bin
 cat ~/.ssh/oss_rsa.pub | ssh root@104.236.14.211 "cat >> ~/.ssh/authorized_keys"
 
 # modify /etc/hosts
+# TODO: use conf.d
 echo '10.132.164.226 hadoop1.danieltrinh.com hadoop1' >> /etc/hosts
 echo '10.132.165.24 hadoop2.danieltrinh.com hadoop2' >> /etc/hosts
 echo '10.132.164.88 hadoop3.danieltrinh.com hadoop3' >> /etc/hosts
@@ -77,4 +82,5 @@ fi
 # There should probably be a better way of joining the cluster, but this works for now
 consul join 10.132.164.226:8301
 
+# TODO: conf.d
 sudo mkdir -p /etc/confd/{conf.d,templates}

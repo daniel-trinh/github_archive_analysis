@@ -19,7 +19,7 @@ case object Test extends Environment {
 
 object Config {
   def env: Environment = {
-    val environment = scala.io.Source.fromFile("/etc/br_env").mkString.trim
+    val environment = scala.io.Source.fromFile("/etc/env").mkString.trim
     environment match {
       case "production" => Production
       case "development" => Development
@@ -31,4 +31,11 @@ object Config {
   private lazy val githubArchiveConfig = config.getConfig("github-archive")
   lazy val githubArchiveUrl = githubArchiveConfig.getString("url")
   lazy val githubArchiveStartDate = githubArchiveConfig.getString("start_date")
+
+  lazy val hadoopHome = config.getString("hadoop-home")
+  lazy val hadoopConfigPaths = List(
+    s"$hadoopHome/core-site.xml",
+    s"$hadoopHome/hdfs-site.xml",
+    s"$hadoopHome/mapred-site.xml"
+  )
 }

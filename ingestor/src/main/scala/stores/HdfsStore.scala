@@ -3,12 +3,23 @@ package ingestor.stores
 import java.io.PrintWriter
 
 import dispatch._
+import ingestor.Config
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{Path, FileSystem}
 
 import scala.util.{Failure, Success, Try}
 
-case class HdfsStore(conf: Configuration = new Configuration()) extends Store[String] {
+object HdfsStore {
+  def defaultConfig = {
+    val hadoopConfig = new Configuration()
+    Config.hadoopConfigPaths.foreach { path =>
+      hadoopConfig.addResource(new Path(path))
+    }
+    hadoopConfig
+  }
+}
+
+case class HdfsStore(conf: Configuration = HdfsStore.defaultConfig) extends Store[String] {
   val filesystem = {
     FileSystem.get(conf)
   }
