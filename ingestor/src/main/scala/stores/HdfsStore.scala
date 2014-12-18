@@ -39,7 +39,6 @@ case class HdfsStore(conf: Configuration = HdfsStore.defaultConfig)(implicit ctx
     val hdfsPath = new Path(path)
 
     val output = Try(fs.create(hdfsPath, overwrite))
-
     val writer = output.map {o => new PrintWriter(o)}
 
     val result = writer.map { w =>
