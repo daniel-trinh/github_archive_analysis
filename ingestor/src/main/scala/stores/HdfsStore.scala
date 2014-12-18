@@ -2,11 +2,14 @@ package ingestor.stores
 
 import java.io.PrintWriter
 
+import com.danieltrinh.ScalaUtilExtensions._
+
 import dispatch._
 import ingestor.Config
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{Path, FileSystem}
 
+import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
 object HdfsStore {
@@ -19,25 +22,33 @@ object HdfsStore {
   }
 }
 
-case class HdfsStore(conf: Configuration = HdfsStore.defaultConfig) extends Store[String] {
+case class HdfsStore(conf: Configuration = HdfsStore.defaultConfig)(implicit ctx: ExecutionContext) extends Store[String] {
   val filesystem = {
     FileSystem.get(conf)
   }
 
-  def insert(path: String, data: String): Future[Unit] = {
+  /**
+   *
+   * @param path File path to store data in
+   * @param data Data to insert to Hdfs
+   * @param overwrite
+   */
+  def insert(path: String, data: String, overwrite: Boolean = true): Future[Unit] = {
     val fs = filesystem
 
-    val output = fs.create(new Path(path))
-    val writer = new PrintWriter(output)
+    val hdfsPath = new Path(path)
 
-    Try(writer.write(data)) match {
-      case Success(_) =>
-        writer.close()
-        Future.successful(())
-      case Failure(error) =>
-        writer.close()
-        Future.failed(error)
-    }
+    val output = Try(fs.create(hdfsPath, overwrite))
+
+    val writer = output.map {o => new PrintWriter(o)}
+
+    val result = writer.map { w =>
+      w.write(data)
+    }.toFuture
+
+    writer.map { _.close }
+
+    result
   }
 
   def exists(path: String): Future[Boolean] = {

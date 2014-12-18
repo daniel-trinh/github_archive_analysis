@@ -14,7 +14,8 @@ object Ingestor extends App {
 
   val today = DateTime.now(UTC)
   val hourlyDateTimes = oneDayOfHours(today)
-  implicit val store = InMemoryStore(new SimpleLruCache[String](10, 10))
+//  implicit val store = InMemoryStore(new SimpleLruCache[String](10, 10))
+  implicit val store = HdfsStore()
   val attempt = Future.serialiseFutures(hourlyDateTimes) { time =>
     pullAndWrite(time)
   }

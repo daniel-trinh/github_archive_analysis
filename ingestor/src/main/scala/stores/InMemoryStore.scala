@@ -6,7 +6,7 @@ import spray.caching.Cache
 import scala.concurrent.ExecutionContext
 
 case class InMemoryStore[T](cache: Cache[T])(implicit ctx: ExecutionContext) extends Store[T] {
-  def insert(path: String, data: T): Future[Unit] = {
+  def insert(path: String, data: T, overwrite: Boolean = true): Future[Unit] = {
     cache(path) {
       Future.successful(data)
     }.map(_ => ())
