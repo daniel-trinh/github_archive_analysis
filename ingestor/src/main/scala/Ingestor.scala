@@ -12,11 +12,12 @@ import spray.caching.SimpleLruCache
 
 object Ingestor extends App {
 
-  val today = DateTime.now(UTC)
-  val hourlyDateTimes = oneDayOfHours(today)
+  val yesterday = DateTime.now(UTC).minusDays(1)
+  val hourlyDateTimes = oneDayOfHours(yesterday)
 //  implicit val store = InMemoryStore(new SimpleLruCache[String](10, 10))
   implicit val store = HdfsStore()
   val attempt = Future.serialiseFutures(hourlyDateTimes) { time =>
+    println(s"Pulling data for $time")
     pullAndWrite(time)
   }
 
