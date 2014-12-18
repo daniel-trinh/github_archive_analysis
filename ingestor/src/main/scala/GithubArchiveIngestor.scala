@@ -30,7 +30,7 @@ object GithubArchiveIngestor {
 
   def pullData(dateTime: DateTime)(implicit ctx: ExecutionContext): Future[HourlyData] = {
     assert(dateTime >= DateTime.parse(Config.githubArchiveStartDate))
-    val dateSuffix = HourlyData.filePrefix(dateTime)
+    val dateSuffix = HourlyData.fileName(dateTime)
     val endpoint = s"${Config.githubArchiveUrl}/$dateSuffix.json.gz"
 
     val query = url(endpoint).setHeaders(Map(
@@ -60,13 +60,14 @@ object GithubArchiveIngestor {
 }
 
 case class HourlyData(dateTime: DateTime, data: String) {
-  def path: String = s"/${HourlyData.filePrefix(dateTime)}/$hour.json.gz"
+  def path: String = s"/$date/$hour.json.gz"
   def hour = dateTime.hour.get()
-  def date = dateTime.toString("yyyy-MM-dd")
+  def date = dateTime.toString(HourlyData.dateFormat)
 }
 
 object HourlyData {
-  def filePrefix(dateTime: DateTime): String = s"${dateTime.toString("yyyy-MM-dd")}-${dateTime.hour.get()}"
+  val dateFormat = "yyyy-MM-dd"
+  def fileName(dateTime: DateTime): String = s"${dateTime.toString(dateFormat)}-${dateTime.hour.get()}"
 }
 
 case class Repo(url: String, name: String, id: Long)
