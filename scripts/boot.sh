@@ -6,11 +6,15 @@ echo 'PasswordAuthentication no' >> /etc/ssh/sshd_config
 SSHD_PID="$(ps auxw | grep "/usr/sbin/sshd" | awk '{print $2}' |  sed -n '1 p')"
 kill -HUP $SSHD_PID
 
+# Restart sshd
+/etc/init.d/sshd restart
+
 yum -y install wget
 yum -y localinstall https://dl.bintray.com/sbt/rpm/sbt-0.13.7.rpm
 yum -y install git
 yum -y install nc
 yum -y install unzip
+yum -y install fail2ban
 
 # Set environment to production. This should probably in conf.d
 # TODO: move to conf.d
@@ -84,3 +88,6 @@ consul join 10.132.164.226:8301
 
 # TODO: conf.d
 sudo mkdir -p /etc/confd/{conf.d,templates}
+
+# TODO: change log directory of fail2ban for sshd, enable sshd scanning
+sudo service fail2ban restart
