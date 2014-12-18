@@ -7,13 +7,14 @@ import stores._
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.danieltrinh.FutureExtensions._
 import scala.concurrent.Future
-import scala.util.{Success, Failure}
+import scala.util.{Try, Success, Failure}
 import spray.caching.SimpleLruCache
 
 object Ingestor extends App {
+  val daysAgo = Try(args(0)).getOrElse("1").toInt
 
-  val yesterday = DateTime.now(UTC).minusDays(1)
-  val hourlyDateTimes = oneDayOfHours(yesterday)
+  val dayToPull = DateTime.now(UTC).minusDays(daysAgo)
+  val hourlyDateTimes = oneDayOfHours(dayToPull)
 //  implicit val store = InMemoryStore(new SimpleLruCache[String](10, 10))
   implicit val store = HdfsStore()
   val attempt = Future.serialiseFutures(hourlyDateTimes) { time =>
