@@ -40,7 +40,8 @@ object GithubAnalysisBuild extends Build {
   ).settings(
     baseSettings: _*
   ).settings(
-    libraryDependencies ++= Seq(
+      fork in run := true,
+      libraryDependencies ++= Seq(
       "org.apache.hadoop" % "hadoop-client" % "2.5.2",
       "io.spray" %% "spray-caching" % "1.3.2"
     )
