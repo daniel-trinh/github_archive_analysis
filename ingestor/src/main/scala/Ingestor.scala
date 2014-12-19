@@ -4,13 +4,13 @@ import com.typesafe.scalalogging.Logger
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone._
 import GithubArchiveIngestor._
-import org.slf4j.LoggerFactory
 import stores._
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.danieltrinh.FutureExtensions._
 import scala.concurrent.Future
 import scala.util.{Try, Success, Failure}
 import spray.caching.SimpleLruCache
+import org.slf4j.LoggerFactory
 
 object Ingestor extends App {
   val daysAgo = Try(args(0)).getOrElse("1").toInt
@@ -25,7 +25,6 @@ object Ingestor extends App {
     logger.info(s"Pulling data for $time")
     pullAndWrite(time)
   }
-
   attempt.onComplete {
     case Success(_) =>
       sys.exit(0)

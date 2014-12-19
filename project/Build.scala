@@ -18,7 +18,8 @@ object GithubAnalysisBuild extends Build {
     "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3",
     "com.github.nscala-time" %% "nscala-time" % "1.4.0",
     "org.scala-lang" % "scala-reflect" % scalaCompilerVersion,
-    "com.danieltrinh" %% "utils" % "0.2.0"
+    "com.danieltrinh" %% "utils" % "0.2.0",
+    "ch.qos.logback" % "logback-classic" % "1.1.2"
   )
 
   lazy val webapp = Project(
