@@ -44,7 +44,8 @@ object GithubAnalysisBuild extends Build {
     libraryDependencies ++= Seq(
       "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
       "org.apache.hadoop" % "hadoop-client" % "2.5.2",
-      "io.spray" %% "spray-caching" % "1.3.2"
+      "io.spray" %% "spray-caching" % "1.3.2",
+      "com.github.scopt" %% "scopt" % "3.3.0"
     )
   )
 
