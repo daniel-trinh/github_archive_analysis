@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory
 object Ingestor extends App {
   val daysAgo = Try(args(0)).getOrElse("1").toInt
 
-  val logger = Logger(LoggerFactory.getLogger("github_ingestor"))
+  val logger = Logger(LoggerFactory.getLogger(this.getClass))
 
   val dayToPull = DateTime.now(UTC).minusDays(daysAgo)
   val hourlyDateTimes = oneDayOfHours(dayToPull)
