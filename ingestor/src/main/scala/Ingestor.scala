@@ -15,8 +15,6 @@ import org.slf4j.LoggerFactory
 case class IngestorConfig(daysAgo: Int = 1, dateToIngest: DateTime = DateTime.now(UTC))
 
 object Ingestor extends App {
-  val daysAgo = Try(args(0)).getOrElse("1").toInt
-
   val parser = new scopt.OptionParser[IngestorConfig]("github_ingestor") {
     head("github_ingestor", "3.x")
     opt[Int]('a', "daysAgo") optional() action { (x, c) =>
