@@ -51,7 +51,7 @@ object GithubAnalysisBuild extends Build {
   )
 
   lazy val jobs = Project(
-    "jobs", file("ingestor")
+    "jobs", file("jobs")
   ).settings(
     baseSettings: _*
   )
