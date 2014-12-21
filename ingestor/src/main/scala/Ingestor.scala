@@ -12,28 +12,28 @@ import scala.util.{Try, Success, Failure}
 import spray.caching.SimpleLruCache
 import org.slf4j.LoggerFactory
 
-case class IngestorConfig(daysAgo: Int = 1, dateToIngest: DateTime = DateTime.now(UTC))
+case class IngestorConfig(daysAgo: Option[Int] = None, dateToIngest: Option[DateTime] = None)
 
 object Ingestor extends App {
   val parser = new scopt.OptionParser[IngestorConfig]("github_ingestor") {
     head("github_ingestor", "3.x")
     opt[Int]('a', "daysAgo") optional() action { (x, c) =>
-      c.copy(daysAgo = x) } text("How many days ago from 'dateToIngest' to pull data from")
+      c.copy(daysAgo = Some(x)) } text
+      "How many days ago from 'dateToIngest' to pull data from"
     opt[String]('d', "dateToIngest") optional() action { (x, c) =>
-      c.copy(dateToIngest = DateTime.parse(x)) } text(
-        """
-          |The day of reference to pull data from.
-          |
-          |Must be in format "yyyy-MM-dd"
-          |If dateToIngest is today, and daysAgo is 1, this will ingest data from yesterday.
-          |If dateToIngest is 2014-06-02, and daysAgo is 0, this will ingest data from 2014-06-02.
-        """.stripMargin
-      )
+      c.copy(dateToIngest = Some(DateTime.parse(x))) } text
+      "The day of reference to pull data from. Overrides daysAgo if present."
   }
 
   parser.parse(args, IngestorConfig()) match {
     case Some(config) =>
-      val dayToPull = config.dateToIngest.minusDays(config.daysAgo)
+      val IngestorConfig(daysAgoOpt, dateToIngestOpt) = config
+
+      val dayToPull = dateToIngestOpt.getOrElse {
+        val daysAgo = daysAgoOpt.getOrElse(2)
+        DateTime.now(UTC).minusDays(daysAgo)
+      }
+
       val logger = Logger(LoggerFactory.getLogger(this.getClass))
       val hourlyDateTimes = oneDayOfHours(dayToPull)
       //  implicit val store = InMemoryStore(new SimpleLruCache[String](10, 10))

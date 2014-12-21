@@ -28,10 +28,10 @@ case class HdfsStore(conf: Configuration = HdfsStore.defaultConfig)(implicit ctx
   }
 
   /**
-   *
+   * Insert data into the HDFS pointed at via conf.
    * @param path File path to store data in
    * @param data Data to insert to Hdfs
-   * @param overwrite
+   * @param overwrite If passed, any existing file is overwritten if it already exists.
    */
   def insert(path: String, data: String, overwrite: Boolean = true): Future[Unit] = {
     val fs = filesystem

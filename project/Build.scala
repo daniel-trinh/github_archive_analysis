@@ -33,7 +33,8 @@ object GithubAnalysisBuild extends Build {
       "com.etaty.rediscala" %% "rediscala" % "1.4.0"
     ),
     routesImport += "binders.QueryBinders._"
-  ).aggregate(injestor)
+  ).aggregate(injestor, jobs)
+
 
   lazy val injestor = Project(
     "ingestor", file("ingestor")
@@ -47,6 +48,12 @@ object GithubAnalysisBuild extends Build {
       "io.spray" %% "spray-caching" % "1.3.2",
       "com.github.scopt" %% "scopt" % "3.3.0"
     )
+  )
+
+  lazy val jobs = Project(
+    "jobs", file("ingestor")
+  ).settings(
+    baseSettings: _*
   )
 
   val originalJvmOptions = sys.process.javaVmArguments.filter(
