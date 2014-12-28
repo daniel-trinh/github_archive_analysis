@@ -12,3 +12,5 @@ addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.3.2")
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.12.0")
 
 addSbtPlugin("me.lessis" % "bintray-sbt" % "0.1.2")
+
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.12.0")

@@ -4,6 +4,7 @@ import play.PlayScala
 import sbt._
 import sbt.Keys._
 import bintray.Plugin._
+import sbtassembly.AssemblyPlugin.autoImport._
 
 object GithubAnalysisBuild extends Build {
 
@@ -11,13 +12,11 @@ object GithubAnalysisBuild extends Build {
 
   val baseDependencies = Seq(
     "com.github.nscala-time" %% "nscala-time" % "1.4.0",
-    "org.scala-lang" % "scala-reflect" % scalaCompilerVersion,
     "org.json4s" %% "json4s-jackson" % "3.2.10",
     "net.databinder.dispatch" %% "dispatch-core" % "0.11.2",
     "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.3",
     "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3",
     "com.github.nscala-time" %% "nscala-time" % "1.4.0",
-    "org.scala-lang" % "scala-reflect" % scalaCompilerVersion,
     "com.danieltrinh" %% "utils" % "0.2.0"
   )
 
@@ -54,6 +53,10 @@ object GithubAnalysisBuild extends Build {
     "jobs", file("jobs")
   ).settings(
     baseSettings: _*
+  ).settings(
+    libraryDependencies ++= Seq(
+      "org.apache.spark" %% "spark-core" % "1.2.0" % "provided"
+    )
   )
 
   val originalJvmOptions = sys.process.javaVmArguments.filter(
@@ -76,7 +79,8 @@ object GithubAnalysisBuild extends Build {
     resolvers ++= Seq(
       Opts.resolver.sonatypeReleases,
       "utils" at "http://dl.bintray.com/daniel-trinh/maven",
-      "rediscala" at "http://dl.bintray.com/etaty/maven"
+      "rediscala" at "http://dl.bintray.com/etaty/maven",
+      "scalatools" at "https://oss.sonatype.org/content/groups/scala-tools/"
     ),
     libraryDependencies ++= baseDependencies
   )
