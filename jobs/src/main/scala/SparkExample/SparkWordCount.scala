@@ -1,5 +1,6 @@
 package jobs
 
+import org.apache.hadoop.io.compress.GzipCodec
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkContext._
 import org.apache.spark.SparkConf
@@ -21,6 +22,6 @@ object SparkWordCount {
     // count characters
     val charCounts = filtered.flatMap(_._1.toCharArray).map((_, 1)).reduceByKey(_ + _)
 
-    System.out.println(charCounts.collect().mkString(", "))
+    charCounts.saveAsTextFile("hdfs://test/counts.txt.gz", classOf[GzipCodec])
   }
 }
