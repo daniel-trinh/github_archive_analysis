@@ -40,7 +40,6 @@ object GithubAnalysisBuild extends Build {
   ).settings(
     baseSettings: _*
   ).settings(
-    fork in run := true,
     libraryDependencies ++= Seq(
       "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
       "org.apache.hadoop" % "hadoop-client" % "2.5.2",
@@ -55,7 +54,8 @@ object GithubAnalysisBuild extends Build {
     baseSettings: _*
   ).settings(
     libraryDependencies ++= Seq(
-      "org.apache.spark" %% "spark-core" % "1.2.0" % "provided"
+      "org.apache.spark" %% "spark-core" % "1.2.0" % "provided",
+      "org.apache.hadoop" % "hadoop-client" % "2.5.2"
     )
   )
 

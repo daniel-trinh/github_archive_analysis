@@ -8,9 +8,11 @@ import stores._
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.danieltrinh.FutureExtensions._
 import scala.concurrent.Future
+import scala.language.postfixOps
 import scala.util.{Try, Success, Failure}
 import spray.caching.SimpleLruCache
 import org.slf4j.LoggerFactory
+import scala.sys.process._
 
 case class IngestorConfig(daysAgo: Option[Int] = None, dateToIngest: Option[DateTime] = None)
 
@@ -24,6 +26,7 @@ object Ingestor extends App {
       c.copy(dateToIngest = Some(DateTime.parse(x))) } text
       "The day of reference to pull data from. Overrides daysAgo if present."
   }
+  val logger = Logger(LoggerFactory.getLogger(this.getClass))
 
   parser.parse(args, IngestorConfig()) match {
     case Some(config) =>
@@ -34,23 +37,46 @@ object Ingestor extends App {
         DateTime.now(UTC).minusDays(daysAgo)
       }
 
-      val logger = Logger(LoggerFactory.getLogger(this.getClass))
       val hourlyDateTimes = oneDayOfHours(dayToPull)
       //  implicit val store = InMemoryStore(new SimpleLruCache[String](10, 10))
       implicit val store = HdfsStore()
-      val attempt = Future.serialiseFutures(hourlyDateTimes) { time =>
+
+      val attempts = hourlyDateTimes.map { time =>
         logger.info(s"Pulling data for $time")
-        pullAndWrite(time)
+        fetchAndWriteData(time)
       }
-      attempt.onComplete {
-        case Success(_) =>
-          sys.exit(0)
-        case Failure(e) =>
-          logger.error(e.getMessage)
-          logger.error(e.getStackTrace.mkString("\n"))
-          sys.exit(1)
+
+      if (attempts.exists(_.isFailure)) {
+        val errors = attempts.filter(_.isFailure).flatMap(_.failed.toOption)
+        errors.foreach { error =>
+          logger.error(error.getMessage)
+          logger.error(error.getStackTrace.mkString("\n"))
+        }
+        sys.exit(1)
+      } else {
+        logger.info(s"Successfully pulled data for $dayToPull")
+        sys.exit(0)
       }
     case None =>
       sys.exit(1)
+  }
+
+  def fetchAndWriteData(time: DateTime): Try[Unit] = {
+    val filepath = s"${HourlyData.dateSuffix(time)}.json"
+    val url = GithubArchiveIngestor.endpoint(time)
+
+    // Just in case a previous job failed.
+    val cleanup = s"rm $filepath" !
+
+    val status = s"wget $url" #&&
+      s"gunzip $filepath.gz" #&&
+      s"hdfs dfs -moveFromLocal $filepath /${time.toString("yyyy-MM-dd")}/${time.hourOfDay().get()}.json" !
+
+    if (status != 0) {
+      val errorMsg = s"Failed to fetch and store data for $time"
+      Failure(new RuntimeException(errorMsg))
+    } else {
+      Success(())
+    }
   }
 }

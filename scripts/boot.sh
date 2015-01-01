@@ -46,14 +46,16 @@ yum -y install htop
 /bin/rm rpmforge-release-0.5.2-2.el6.rf.i686.rpm
 
 # forward port traffic for browsing remote servers
-ssh -L 7180:localhost:7180 root@104.236.59.249 -N
+# ssh -L 7180:localhost:7180 root@104.236.59.249 -N
 
 # Add supergroup for accessing hdfs
 groupadd supergroup
 usermod -a -G supergroup root
 
-# Ignore overcommitment memory issues. This is a hack.
+# Ignore overcommitment memory issues. This is a hack. I think this needs to run on every boot.
 echo 1 > /proc/sys/vm/overcommit_memory
+
+#### Confd stuff
 
 # Setup confd to share config across nodes
 wget https://github.com/kelseyhightower/confd/releases/download/v0.6.3/confd-0.6.3-linux-amd64
@@ -91,3 +93,25 @@ sudo mkdir -p /etc/confd/{conf.d,templates}
 
 # TODO: change log directory of fail2ban for sshd, enable sshd scanning
 sudo service fail2ban restart
+
+### Spark stuff
+
+yum -y install yum-utils
+yum-config-manager --add-repo http://archive.cloudera.com/cdh5/redhat/6/x86_64/cdh/cloudera-cdh5.repo
+yum -y install spark-core spark-master spark-worker spark-history-server
+
+# TODO: add /etc/spark/conf/spark-env.sh to conf.d
+# TODO: add /etc/spark/conf/spark-defaults.conf to conf.d
+
+# This only needs to be done on one node
+sudo -u hdfs hadoop fs -mkdir /user/spark
+sudo -u hdfs hadoop fs -mkdir /user/spark/applicationHistory
+sudo -u hdfs hadoop fs -chown -R spark:spark /user/spark
+sudo -u hdfs hadoop fs -chmod 1777 /user/spark/applicationHistory
+
+# TODO:
+# sudo service spark-master start
+# OR
+# sudo service spark-worker start
+
+# on one node: sudo service spark-history-server start

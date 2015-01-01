@@ -23,5 +23,7 @@ object SparkWordCount {
     val charCounts = filtered.flatMap(_._1.toCharArray).map((_, 1)).reduceByKey(_ + _)
 
     charCounts.saveAsTextFile("hdfs://test/counts.txt.gz", classOf[GzipCodec])
+
+    System.out.println(charCounts.collect().mkString(", "))
   }
 }
