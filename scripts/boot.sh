@@ -1,3 +1,4 @@
+#!/bin/bash
 ### Disables ssh password logins
 echo 'PermitRootLogin without-password' >> /etc/ssh/sshd_config
 echo 'PasswordAuthentication no' >> /etc/ssh/sshd_config
@@ -16,10 +17,6 @@ yum -y install nc
 yum -y install unzip
 yum -y install fail2ban
 
-# Set environment to production. This should probably in conf.d
-# TODO: move to conf.d
-echo 'production' >> /etc/env
-
 # Increase sbt size
 export SBT_OPTS="-Xmx512M -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=512M -Xss2M  -Duser.timezone=GMT"
 export HADOOP_HOME="/opt/cloudera/parcels/CDH/lib/hadoop/etc/hadoop"
@@ -30,14 +27,7 @@ chmod u+x cloudera-manager-installer.bin
 sudo ./cloudera-manager-installer.bin
 
 # Upload new ssh key
-cat ~/.ssh/oss_rsa.pub | ssh root@104.236.14.211 "cat >> ~/.ssh/authorized_keys"
-
-# modify /etc/hosts
-# TODO: use conf.d
-echo '10.132.164.226 hadoop1.danieltrinh.com hadoop1' >> /etc/hosts
-echo '10.132.165.24 hadoop2.danieltrinh.com hadoop2' >> /etc/hosts
-echo '10.132.164.88 hadoop3.danieltrinh.com hadoop3' >> /etc/hosts
-echo '10.132.164.89 hadoop4.danieltrinh.com haddop4' >> /etc/hosts
+# cat ~/.ssh/oss_rsa.pub | ssh root@104.236.14.211 "cat >> ~/.ssh/authorized_keys"
 
 # Setup Repoforge to install htop
 wget http://packages.sw.be/rpmforge-release/rpmforge-release-0.5.2-2.el6.rf.i686.rpm
@@ -54,6 +44,18 @@ usermod -a -G supergroup root
 
 # Ignore overcommitment memory issues. This is a hack. I think this needs to run on every boot.
 echo 1 > /proc/sys/vm/overcommit_memory
+
+
+# modify /etc/hosts
+hosts_text='127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+10.132.164.226 hadoop1.danieltrinh.com hadoop1
+10.132.165.24 hadoop2.danieltrinh.com hadoop2
+10.132.164.88 hadoop3.danieltrinh.com hadoop3
+10.132.164.89 hadoop4.danieltrinh.com hadoop4'
+
+# TODO: use conf.d to simplify adding of hosts
+echo $hosts_text > /etc/hosts
 
 #### Confd stuff
 
@@ -72,6 +74,12 @@ chmod +x /usr/local/bin/consul
 # Create data folder for consul
 mkdir /etc/consul
 
+# Create folders for confd configs
+mkdir /etc/confd
+mkdir /etc/confd/conf.d
+mkdir /etc/confd/templates/
+
+
 # Run consul in the background
 HOST=`hostname`
 if [[ $HOST == "hadoop2.danieltrinh.com" ]]; then
@@ -87,6 +95,9 @@ fi
 
 # There should probably be a better way of joining the cluster, but this works for now
 consul join 10.132.164.226:8301
+
+# Run confd in background
+confd -backend consul -node 127.0.0.1:8500 > /dev/null 2>&1 &
 
 # TODO: conf.d
 sudo mkdir -p /etc/confd/{conf.d,templates}

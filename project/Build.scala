@@ -32,10 +32,10 @@ object GithubAnalysisBuild extends Build {
       "com.etaty.rediscala" %% "rediscala" % "1.4.0"
     ),
     routesImport += "binders.QueryBinders._"
-  ).aggregate(injestor, jobs)
+  ).aggregate(ingestor, jobs)
 
 
-  lazy val injestor = Project(
+  lazy val ingestor = Project(
     "ingestor", file("ingestor")
   ).settings(
     baseSettings: _*
@@ -55,9 +55,10 @@ object GithubAnalysisBuild extends Build {
   ).settings(
     libraryDependencies ++= Seq(
       "org.apache.spark" %% "spark-core" % "1.2.0" % "provided",
-      "org.apache.hadoop" % "hadoop-client" % "2.5.2"
+      "org.apache.hadoop" % "hadoop-client" % "2.5.2",
+      "com.github.seratch" %% "awscala" % "0.4.+"
     )
-  )
+  ).dependsOn(ingestor)
 
   val originalJvmOptions = sys.process.javaVmArguments.filter(
     a => Seq("-Xmx", "-Xms", "-XX").exists(a.startsWith)
