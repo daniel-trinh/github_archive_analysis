@@ -1,83 +1,5 @@
 #!/bin/bash
-### Disables ssh password logins
-echo 'PermitRootLogin without-password' >> /etc/ssh/sshd_config
-echo 'PasswordAuthentication no' >> /etc/ssh/sshd_config
 
-# Grabs sshd process id
-SSHD_PID="$(ps auxw | grep "/usr/sbin/sshd" | awk '{print $2}' |  sed -n '1 p')"
-kill -HUP $SSHD_PID
-
-# Restart sshd
-/etc/init.d/sshd restart
-
-yum -y install wget
-yum -y localinstall https://dl.bintray.com/sbt/rpm/sbt-0.13.7.rpm
-yum -y install git
-yum -y install nc
-yum -y install unzip
-yum -y install fail2ban
-
-# Increase sbt size
-export SBT_OPTS="-Xmx512M -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=512M -Xss2M  -Duser.timezone=GMT"
-export HADOOP_HOME="/opt/cloudera/parcels/CDH/lib/hadoop/etc/hadoop"
-
-# Download cloudera manager setup. only needed on one node
-wget http://archive.cloudera.com/cm5/installer/latest/cloudera-manager-installer.bin
-chmod u+x cloudera-manager-installer.bin
-sudo ./cloudera-manager-installer.bin
-
-# Upload new ssh key
-# cat ~/.ssh/oss_rsa.pub | ssh root@104.236.14.211 "cat >> ~/.ssh/authorized_keys"
-
-# Setup Repoforge to install htop
-wget http://packages.sw.be/rpmforge-release/rpmforge-release-0.5.2-2.el6.rf.i686.rpm
-rpm -ihv rpmforge-release*.rf.i686.rpm
-yum -y install htop
-/bin/rm rpmforge-release-0.5.2-2.el6.rf.i686.rpm
-
-# forward port traffic for browsing remote servers
-# ssh -L 7180:localhost:7180 root@104.236.59.249 -N
-
-# Add supergroup for accessing hdfs
-groupadd supergroup
-usermod -a -G supergroup root
-
-# Ignore overcommitment memory issues. This is a hack. I think this needs to run on every boot.
-echo 1 > /proc/sys/vm/overcommit_memory
-
-
-# modify /etc/hosts
-hosts_text='127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
-::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
-10.132.164.226 hadoop1.danieltrinh.com hadoop1
-10.132.165.24 hadoop2.danieltrinh.com hadoop2
-10.132.164.88 hadoop3.danieltrinh.com hadoop3
-10.132.164.89 hadoop4.danieltrinh.com hadoop4'
-
-# TODO: use conf.d to simplify adding of hosts
-echo $hosts_text > /etc/hosts
-
-#### Confd stuff
-
-# Setup confd to share config across nodes
-wget https://github.com/kelseyhightower/confd/releases/download/v0.6.3/confd-0.6.3-linux-amd64
-mv confd-0.6.3-linux-amd64 /usr/local/bin/confd
-chmod +x /usr/local/bin/confd
-
-# Setup consul for confd backend
-wget https://dl.bintray.com/mitchellh/consul/0.4.1_linux_amd64.zip
-unzip 0.4.1_linux_amd64.zip
-mv consul /usr/local/bin/consul
-chmod +x /usr/local/bin/consul
-/bin/rm 0.4.1_linux_amd64.zip
-
-# Create data folder for consul
-mkdir /etc/consul
-
-# Create folders for confd configs
-mkdir /etc/confd
-mkdir /etc/confd/conf.d
-mkdir /etc/confd/templates/
 
 
 # Run consul in the background
@@ -107,20 +29,7 @@ sudo service fail2ban restart
 
 ### Spark stuff
 
-yum -y install yum-utils
-yum-config-manager --add-repo http://archive.cloudera.com/cdh5/redhat/6/x86_64/cdh/cloudera-cdh5.repo
-yum -y install spark-core spark-master spark-worker spark-history-server
-
-# TODO: add /etc/spark/conf/spark-env.sh to conf.d
-# TODO: add /etc/spark/conf/spark-defaults.conf to conf.d
-
-# This only needs to be done on one node
-sudo -u hdfs hadoop fs -mkdir /user/spark
-sudo -u hdfs hadoop fs -mkdir /user/spark/applicationHistory
-sudo -u hdfs hadoop fs -chown -R spark:spark /user/spark
-sudo -u hdfs hadoop fs -chmod 1777 /user/spark/applicationHistory
-
-# TODO:
+# TODO: move to confd .sh and run the .sh file
 # sudo service spark-master start
 # OR
 # sudo service spark-worker start

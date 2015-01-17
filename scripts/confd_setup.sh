@@ -442,3 +442,27 @@ keys = [
 
 echo $spark_env > /etc/confd/templates/spark_env.toml
 
+
+
+read -r -d '' spark_defaults <<'EOF'
+
+# Default system properties included when running spark-submit.
+# This is useful for setting default environmental settings.
+
+# Example:
+# spark.master                     spark://master:7077
+# spark.eventLog.enabled           true
+# spark.eventLog.dir               hdfs://namenode:8021/directory
+# spark.serializer                 org.apache.spark.serializer.KryoSerializer
+# spark.driver.memory              5g
+# spark.executor.extraJavaOptions  -XX:+PrintGCDetails -Dkey=value -Dnumbers="one two three"
+EOF
+
+echo '[template]
+src = "spark_defaults.tmpl"
+dest = "/etc/spark/conf/spark-defaults.conf"
+keys = [
+  "/spark_defaults"
+]' > /etc/confd/conf.d/spark_defaults.toml
+
+echo $spark_defaults > /etc/confd/templates/spark_defaults.toml
