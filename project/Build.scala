@@ -8,7 +8,7 @@ import sbtassembly.AssemblyPlugin.autoImport._
 
 object GithubAnalysisBuild extends Build {
 
-  val scalaCompilerVersion = "2.11.4"
+  val scalaCompilerVersion = "2.11.5"
 
   val baseDependencies = Seq(
     "com.github.nscala-time" %% "nscala-time" % "1.4.0",
@@ -54,15 +54,16 @@ object GithubAnalysisBuild extends Build {
     baseSettings: _*
   ).settings(
     libraryDependencies ++= Seq(
-      "org.apache.spark" %% "spark-core" % "1.2.0" % "provided",
-      "org.apache.hadoop" % "hadoop-client" % "2.5.2",
-      "com.github.seratch" %% "awscala" % "0.4.+"
+      ("org.apache.spark" %% "spark-core" % "1.2.0" % "provided").
+        exclude("commons-beanutils", "commons-beanutils-core"),
+      "org.apache.hadoop" % "hadoop-client" % "2.5.2"
     )
   ).dependsOn(ingestor)
 
   val originalJvmOptions = sys.process.javaVmArguments.filter(
     a => Seq("-Xmx", "-Xms", "-XX").exists(a.startsWith)
   )
+  val meta = """META.INF(.)*""".r
 
   val baseSettings = Seq(
     scalaVersion := scalaCompilerVersion,
@@ -75,6 +76,18 @@ object GithubAnalysisBuild extends Build {
         "git branch".lines_!.find{_.head == '*'}.map{_.drop(1)}.getOrElse("")
       }else ""
       Project.extract(state).currentRef.project + branch + " > "
+    },
+    assemblyMergeStrategy in assembly := {
+      {
+        case PathList("javax", "servlet", xs @ _*) => MergeStrategy.last
+        case PathList("javax", "activation", xs @ _*) => MergeStrategy.last
+        case PathList("org", "apache", xs @ _*) => MergeStrategy.last
+        case PathList("plugin.properties") => MergeStrategy.last
+        case meta(_) => MergeStrategy.discard
+        case x =>
+          val oldStrategy = (assemblyMergeStrategy in assembly).value
+          oldStrategy(x)
+      }
     },
     incOptions := incOptions.value.withNameHashing(true),
     resolvers ++= Seq(

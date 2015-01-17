@@ -1,7 +1,5 @@
 #!/bin/bash
 
-
-
 # Run consul in the background
 HOST=`hostname`
 if [[ $HOST == "hadoop2.danieltrinh.com" ]]; then
