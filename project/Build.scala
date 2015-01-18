@@ -53,11 +53,13 @@ object GithubAnalysisBuild extends Build {
   ).settings(
     baseSettings: _*
   ).settings(
-    libraryDependencies ++= Seq(
+      // Prevent spark and hadoop client from being removed in dev and test environments
+      run in Compile <<= Defaults.runTask(fullClasspath in Compile, mainClass in (Compile, run), runner in (Compile, run)),
+      libraryDependencies ++= Seq(
       ("org.apache.spark" %% "spark-core" % "1.2.0" % "provided").
         exclude("commons-beanutils", "commons-beanutils-core"),
-      "org.apache.hadoop" % "hadoop-client" % "2.5.2"
-    )
+      "org.apache.hadoop" % "hadoop-client" % "2.5.2" % "provided"
+  )
   ).dependsOn(ingestor)
 
   val originalJvmOptions = sys.process.javaVmArguments.filter(
@@ -65,7 +67,7 @@ object GithubAnalysisBuild extends Build {
   )
   val meta = """META.INF(.)*""".r
 
-  val baseSettings = Seq(
+  val baseSettings = net.virtualvoid.sbt.graph.Plugin.graphSettings ++ Seq(
     scalaVersion := scalaCompilerVersion,
     scalacOptions := Seq("-language:_", "-deprecation", "-unchecked", "-Xlint"),
     watchSources ~= { _.filterNot(f => f.getName.endsWith(".swp") || f.getName.endsWith(".swo") || f.isDirectory) },
@@ -79,8 +81,6 @@ object GithubAnalysisBuild extends Build {
     },
     assemblyMergeStrategy in assembly := {
       {
-        case PathList("javax", "servlet", xs @ _*) => MergeStrategy.last
-        case PathList("javax", "activation", xs @ _*) => MergeStrategy.last
         case PathList("org", "apache", xs @ _*) => MergeStrategy.last
         case PathList("plugin.properties") => MergeStrategy.last
         case meta(_) => MergeStrategy.discard
