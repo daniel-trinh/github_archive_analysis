@@ -48,6 +48,16 @@ object GithubAnalysisBuild extends Build {
     )
   )
 
+  lazy val scripts = Project(
+    "scripts", file("scripts")
+  ).settings(
+    baseSettings: _*
+  ).settings(
+    libraryDependencies ++= Seq(
+      "com.lihaoyi" %% "ammonite" % "0.1.0"
+    )
+  )
+
   lazy val jobs = Project(
     "jobs", file("jobs")
   ).settings(

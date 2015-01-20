@@ -30,6 +30,6 @@ sudo service fail2ban restart
 # TODO: move to confd .sh and run the .sh file
 # sudo service spark-master start
 # OR
-# sudo service spark-worker start
+# sudo service spark-worker restart
 
 # on one node: sudo service spark-history-server start

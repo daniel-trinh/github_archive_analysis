@@ -14,7 +14,7 @@ keys = [
 echo '{{getv "/environment"}}' > /etc/confd/templates/env.tmpl
 
 touch /etc/confd/conf.d/hosts.toml
-touch /etc/confd/templates/hosts.toml
+touch /etc/confd/templates/hosts.tmpl
 
 echo '[template]
 src = "hosts.tmpl"
@@ -23,7 +23,7 @@ keys = [
   "/hosts"
 ]' > /etc/confd/conf.d/hosts.toml
 
-echo $hosts_text > /etc/confd/templates/hosts.toml
+echo $hosts_text > /etc/confd/templates/hosts.tmpl
 
 touch /etc/confd/conf.d/fail2banconfig.toml
 touch /etc/confd/templates/fail2banconfig.toml
@@ -466,3 +466,90 @@ keys = [
 ]' > /etc/confd/conf.d/spark_defaults.toml
 
 echo $spark_defaults > /etc/confd/templates/spark_defaults.toml
+
+read -r -d '' core_site <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+  <property>
+    <name>dfs.namenode.name.dir</name>
+    <value>file:///dfs/nn</value>
+  </property>
+  <property>
+    <name>dfs.namenode.servicerpc-address</name>
+    <value>hadoop1.danieltrinh.com:8022</value>
+  </property>
+  <property>
+    <name>dfs.https.address</name>
+    <value>hadoop1.danieltrinh.com:50470</value>
+  </property>
+  <property>
+    <name>dfs.https.port</name>
+    <value>50470</value>
+  </property>
+  <property>
+    <name>dfs.namenode.http-address</name>
+    <value>hadoop1.danieltrinh.com:50070</value>
+  </property>
+  <property>
+    <name>dfs.replication</name>
+    <value>3</value>
+  </property>
+  <property>
+    <name>dfs.blocksize</name>
+    <value>134217728</value>
+  </property>
+  <property>
+    <name>dfs.client.use.datanode.hostname</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>fs.permissions.umask-mode</name>
+    <value>022</value>
+  </property>
+  <property>
+    <name>dfs.namenode.acls.enabled</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>dfs.client.read.shortcircuit</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>dfs.domain.socket.path</name>
+    <value>/var/run/hdfs-sockets/dn</value>
+  </property>
+  <property>
+    <name>dfs.client.read.shortcircuit.skip.checksum</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>dfs.client.domain.socket.data.traffic</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>dfs.datanode.hdfs-blocks-metadata.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>fs.s3.awsAccessKeyId</name>
+    <value>{{getv "/aws_key"}}</value>
+  </property>
+  <property>
+    <name>fs.s3.awsSecretAccessKey</name>
+    <value>{{getv "/aws_secret_key"}}</value>
+  </property>
+</configuration>
+EOF
+
+echo '[template]
+src = "core_site.tmpl"
+dest = "/etc/hadoop/conf/core-site.xml"
+keys = [
+  "/aws_key",
+  "/aws_secret_key"
+]
+reload_cmd = "export AWS_ACCESS_KEY_ID={{getv \"/aws_key\"}} && export AWS_SECRET_ACCESS_KEY={{getv \"/aws_secret_key\"}}"
+' > /etc/confd/conf.d/core_site.toml
+
+echo $core_site > /etc/confd/templates/core_site.tmpl
