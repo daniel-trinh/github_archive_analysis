@@ -5,7 +5,7 @@ import ammonite._
 object ConfdSetup extends App {
   def createFiles: Unit = {
     val confdTomlDir = root/"etc"/"confd"/"conf.d"
-    val confdTemplateDir = root/"etc"/"templates"
+    val confdTemplateDir = root/"etc"/"confd"/"templates"
 
     mkdir! confdTomlDir
     mkdir! confdTemplateDir
