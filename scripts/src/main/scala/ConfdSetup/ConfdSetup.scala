@@ -367,10 +367,7 @@ object ConfdSetup extends App {
         |dest = "/etc/spark/conf/spark-env.sh"
         |keys = [
         |]
-        |reload_cmd = "
-        |  service spark-master condrestart
-        |  service spark-worker restart
-        |"
+        |reload_cmd = "service spark-master condrestart && service spark-worker restart"
       """.stripMargin)
     write.over(confdTemplateDir/"spark_env.tmpl",
       """|#!/usr/bin/env bash
@@ -462,10 +459,7 @@ object ConfdSetup extends App {
          |dest = "/etc/spark/conf/spark-defaults.conf"
          |keys = [
          |]
-         |reload_cmd =  "
-         |  service spark-master condrestart
-         |  service spark-worker restart
-         |"
+         |reload_cmd =  "service spark-master condrestart && service spark-worker restart"
          |""".stripMargin)
     write.over(confdTemplateDir/"spark_defaults.tmpl",
       """|# Default system properties included when running spark-submit.
