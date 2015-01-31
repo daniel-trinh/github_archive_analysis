@@ -56,3 +56,10 @@ jrebel.lic
 config/version.txt
 
 data/elasticsearch
+
+
+# ops stuff
+terraform/terraform.tfstate*
+terraform/*.dot
+terraform/*.ps
+terraform/*.tfvars
