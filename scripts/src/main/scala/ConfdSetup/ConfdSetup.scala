@@ -35,7 +35,10 @@ object ConfdSetup extends App {
     write.over(confdTemplateDir/"hosts.tmpl",
       """127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
         |::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
-        |{{getv "/hosts"}}
+        |{{ range gets "/hosts/*" }}
+        |{{.Value}} {{.Key}}.danieltrinh.com {{.Key}}
+        |{{ end }}
+        |{{ getv "/hosts" }}
         |""".stripMargin
     )
 

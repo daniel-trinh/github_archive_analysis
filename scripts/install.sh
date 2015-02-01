@@ -1,9 +1,5 @@
 #!/bin/bash
 
-### Disables ssh password logins
-sudo echo 'PermitRootLogin without-password' >> /etc/ssh/sshd_config
-sudo echo 'PasswordAuthentication no' >> /etc/ssh/sshd_config
-
 echo "Installing a whole bunch of yum dependencies..."
 sudo yum -y install wget
 sudo yum -y localinstall https://dl.bintray.com/sbt/rpm/sbt-0.13.7.rpm
@@ -17,10 +13,8 @@ sudo yum-config-manager --add-repo http://archive.cloudera.com/cdh5/redhat/6/x86
 sudo yum -y install fail2ban
 sudo yum -y install spark-core spark-master spark-worker spark-history-server
 sudo yum -y install java-1.7.0-openjdk-devel
-
-# TODO: move into bashrc or bash profile. Increase sbt size
-# export SBT_OPTS="-Xmx512M -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=512M -Xss2M  -Duser.timezone=GMT"
-# export HADOOP_HOME="/opt/cloudera/parcels/CDH/lib/hadoop/etc/hadoop"
+sudo yum -y install hadoop-client
+sudo yum clean all
 
 # Download cloudera manager setup. only needed on one node
 # wget http://archive.cloudera.com/cm5/installer/latest/cloudera-manager-installer.bin
@@ -60,9 +54,6 @@ sudo /bin/rm 0.4.1_linux_amd64.zip
 sudo mkdir /etc/consul
 # Directory for consul configurations
 sudo mkdir -p /etc/consul.d/{bootstrap,server,client}
-
-sudo echo '{"bootstrap": true, "server": true, "data_dir": "/etc/consul"}' > /etc/consul.d/bootstrap/config.json
-sudo echo '{"bootstrap": true, "server": true, "data_dir": "/etc/consul"}' > /etc/consul.d/server/config.json
 
 # Create folders for confd configs
 sudo mkdir /etc/confd

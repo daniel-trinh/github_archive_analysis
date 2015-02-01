@@ -26,8 +26,9 @@ provider "aws" {
 resource "aws_instance" "data_master" {
     ami           = "${lookup(var.amis, var.region)}"
     instance_type = "t2.medium"
-    provisioner "local-exec" {
-      command = "echo '${aws_instance.web.private_ip}, data.master.danieltrinh.com' > private_ips.txt"
+    provisioner "remote-exec" {
+      inline = ["echo '${aws_instance.data_master.private_ip}' > /etc/master_private_ip"]
+      inline = ["echo 'data.master' > /etc/host_prefix"]
     }
     provisioner "remote-exec" {
       script = "../scripts/boot.sh"
@@ -38,8 +39,9 @@ resource "aws_instance" "data_master" {
 resource "aws_instance" "data_worker1" {
     ami           = "${lookup(var.amis, var.region)}"
     instance_type = "t2.medium"
-    provisioner "local-exec" {
-      command = "echo '${aws_instance.web.private_ip}, data.worker1.danieltrinh.com' > private_ips.txt"
+    provisioner "remote-exec" {
+      inline = ["echo '${aws_instance.data_master.private_ip}' > /etc/master_private_ip"]
+      inline = ["echo 'data.worker1' > /etc/host_prefix"]
     }
     provisioner "remote-exec" {
       script = "../scripts/boot.sh"
@@ -50,8 +52,9 @@ resource "aws_instance" "data_worker1" {
 resource "aws_instance" "data_worker2" {
     ami           = "${lookup(var.amis, var.region)}"
     instance_type = "t2.small"
-    provisioner "local-exec" {
-      command = "echo ${aws_instance.web.private_ip}, data.worker2.danieltrinh.com > private_ips.txt"
+    provisioner "remote-exec" {
+      inline = ["echo '${aws_instance.data_master.private_ip}' > /etc/master_private_ip"]
+      inline = ["echo 'data.worker2' > /etc/host_prefix"]
     }
     provisioner "remote-exec" {
       script = "../scripts/boot.sh"
