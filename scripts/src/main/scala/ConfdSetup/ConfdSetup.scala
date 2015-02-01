@@ -38,7 +38,6 @@ object ConfdSetup extends App {
         |{{ range gets "/hosts/*" }}
         |{{.Value}} {{.Key}}.danieltrinh.com {{.Key}}
         |{{ end }}
-        |{{ getv "/hosts" }}
         |""".stripMargin
     )
 
