@@ -74,7 +74,7 @@ confd -interval 30 -backend consul -node 127.0.0.1:8500 > /var/log/confd 2>&1 &
 PRIVATE_IP="$(ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/')"
 
 # Add this node's private IP to consul so confd can reload /etc/hosts
-curl -X PUT -d "$PRIVATE_IP" "http://localhost:8500/v1/kv/hosts/$HOST_PREFIX"
+curl -X PUT -d "$PRIVATE_IP $HOST_PREFIX.danieltrinh.com $HOST_PREFIX" "http://localhost:8500/v1/kv/hosts/$HOST_PREFIX"
 
 ### Spark stuff
 
