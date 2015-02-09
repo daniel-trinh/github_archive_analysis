@@ -1,6 +1,8 @@
 variable "access_key" {}
 variable "secret_key" {}
+variable "ssh_key_path" {}
 variable "ssh_pub_key" {}
+
 variable "region" {
     default = "us-east-1"
 }
@@ -9,12 +11,18 @@ variable "amis" {
         us-east-1 = "ami-eebac086"
     }
 }
-variable "ips" {
-    default = {
-        data_master  = "10.0.0.1"
-        data_worker1 = "10.0.0.2"
-        data_worker2 = "10.0.0.3"
-    }
+variable "instance_names" {
+  default = {
+    instance0 = "data.worker0"
+    instance1 = "data.worker1"
+  }
+}
+
+variable "instance_sizes" {
+  default = {
+    instance0 = "t2.medium"
+    instance1 = "t2.small"
+  }
 }
 
 provider "aws" {
@@ -25,59 +33,150 @@ provider "aws" {
 
 resource "aws_instance" "data_master" {
     ami           = "${lookup(var.amis, var.region)}"
-    instance_type = "t2.medium"
+    instance_type = "${lookup(var.instance_sizes, concat("instance", count.index))}"
     provisioner "remote-exec" {
-      inline = ["echo '${aws_instance.data_master.private_ip}' > /etc/master_private_ip"]
-      inline = ["echo 'data.master' > /etc/host_prefix"]
+      script = "bashrc_file"
+      connection {
+        user = "ec2-user"
+        key_file = "~/.ssh/spark-cluster.pem"
+      }
+    }
+    provisioner "remote-exec" {
+      inline = [
+        "sudo echo '${aws_instance.data_master.private_ip}' | sudo tee /etc/master_private_ip",
+        "sudo echo '${lookup(var.instance_names, concat("instance", count.index))}' | sudo tee /etc/host_prefix",
+        "sudo echo '${var.ssh_pub_key}' | sudo tee -a /root/.ssh/authorized_keys"
+      ]
+      connection {
+        user = "ec2-user"
+        key_file = "~/.ssh/spark-cluster.pem"
+      }
     }
     provisioner "remote-exec" {
       script = "../scripts/boot.sh"
+      connection {
+        user = "ec2-user"
+        key_file = "~/.ssh/spark-cluster.pem"
+      }
     }
-    private_ip = "${lookup(var.ips,\"data_master\")}"
+    key_name = "spark-cluster"
 }
 
-resource "aws_instance" "data_worker1" {
+resource "aws_instance" "data_node" {
     ami           = "${lookup(var.amis, var.region)}"
-    instance_type = "t2.medium"
+    instance_type = "${lookup(var.instance_sizes, concat("instance", count.index))}"
+    count = 2
     provisioner "remote-exec" {
-      inline = ["echo '${aws_instance.data_master.private_ip}' > /etc/master_private_ip"]
-      inline = ["echo 'data.worker1' > /etc/host_prefix"]
+      script = "bashrc_file"
+      connection {
+        user = "ec2-user"
+        key_file = "~/.ssh/spark-cluster.pem"
+      }
+    }
+    provisioner "remote-exec" {
+      inline = [
+        "sudo echo '${aws_instance.data_master.private_ip}' | sudo tee /etc/master_private_ip",
+        "sudo echo '${lookup(var.instance_names, concat("instance", count.index))}' | sudo tee /etc/host_prefix",
+        "sudo echo '${var.ssh_pub_key}' | sudo tee -a /root/.ssh/authorized_keys"
+      ]
+      connection {
+        user = "ec2-user"
+        key_file = "~/.ssh/spark-cluster.pem"
+      }
     }
     provisioner "remote-exec" {
       script = "../scripts/boot.sh"
+      connection {
+        user = "ec2-user"
+        key_file = "~/.ssh/spark-cluster.pem"
+      }
     }
-    private_ip = "${lookup(var.ips,\"data_master\")}"
+    key_name = "spark-cluster"
 }
 
-resource "aws_instance" "data_worker2" {
-    ami           = "${lookup(var.amis, var.region)}"
-    instance_type = "t2.small"
-    provisioner "remote-exec" {
-      inline = ["echo '${aws_instance.data_master.private_ip}' > /etc/master_private_ip"]
-      inline = ["echo 'data.worker2' > /etc/host_prefix"]
-    }
-    provisioner "remote-exec" {
-      script = "../scripts/boot.sh"
-    }
-    private_ip = "${lookup(var.ips,\"data_worker2\")}"
-}
+# resource "aws_instance" "data_worker1" {
+#     ami           = "${lookup(var.amis, var.region)}"
+#     instance_type = "t2.medium"
+#     provisioner "file" {
+#         source = "bashrc_file"
+#         destination = "/root/.bashrc"
+#         connection {
+#           user = "ec2-user"
+#           key_file = "~/.ssh/spark-cluster.pem"
+#         }
+#     }
+#     provisioner "remote-exec" {
+#       inline = [
+#         "sudo echo '${aws_instance.data_master.private_ip}' | sudo tee /etc/master_private_ip",
+#         "sudo echo 'data.worker1' | sudo tee /etc/host_prefix",
+#         "sudo echo '${var.ssh_pub_key}' | sudo tee -a /root/.ssh/authorized_keys"
+#       ]
+#       connection {
+#         user = "ec2-user"
+#         key_file = "~/.ssh/spark-cluster.pem"
+#       }
+#     }
+#     provisioner "remote-exec" {
+#       script = "../scripts/boot.sh"
+#       connection {
+#         user = "ec2-user"
+#         key_file = "~/.ssh/spark-cluster.pem"
+#       }
+#     }
+#     key_name = "spark-cluster"
+# }
+
+# resource "aws_instance" "data_worker2" {
+#     ami           = "${lookup(var.amis, var.region)}"
+#     instance_type = "t2.small"
+#     provisioner "file" {
+#       source = "bashrc_file"
+#       destination = "/root/.bashrc"
+#       connection {
+#         user = "ec2-user"
+#         key_file = "~/.ssh/spark-cluster.pem"
+#       }
+#     }
+#     provisioner "remote-exec" {
+#       inline = [
+#         "sudo echo '${aws_instance.data_master.private_ip}' | sudo tee /etc/master_private_ip",
+#         "sudo echo 'data.worker2' | sudo tee /etc/host_prefix",
+#         "sudo echo '${var.ssh_pub_key}' | sudo tee -a /root/.ssh/authorized_keys"
+#       ]
+#       connection {
+#         user = "ec2-user"
+#         key_file = "~/.ssh/spark-cluster.pem"
+#       }
+#     }
+#     provisioner "remote-exec" {
+#       script = "../scripts/boot.sh"
+#       connection {
+#         user = "ec2-user"
+#         key_file = "~/.ssh/spark-cluster.pem"
+#       }
+#     }
+#     key_name = "spark-cluster"
+# }
 
 resource "aws_eip" "ip_master" {
     instance = "${aws_instance.data_master.id}"
 }
 resource "aws_eip" "ip_worker1" {
-    instance = "${aws_instance.data_worker1.id}"
+    instance = "${aws_instance.data_node.0.id}"
 }
 resource "aws_eip" "ip_worker2" {
-    instance = "${aws_instance.data_worker2.id}"
+    instance = "${aws_instance.data_node.1.id}"
 }
 
+output "Message" {
+  value = "Manually ssh and run ../scripts/load_consul_variables.sh on the following IPs: ${aws_eip.ip_master.public_ip}"
+}
 output "ip_master" {
-    value = "${aws_eip.ip_master.public_ip}"
+  value = "Manually ssh and run ../scripts/load_consul_variables.sh on the following IPs: ${aws_eip.ip_master.public_ip}"
 }
 output "ip_worker1" {
-    value = "${aws_eip.ip_worker1.public_ip}"
+  value = "${aws_eip.ip_worker1.public_ip}"
 }
 output "ip_worker2" {
-    value = "${aws_eip.ip_worker2.public_ip}"
+  value = "${aws_eip.ip_worker2.public_ip}"
 }

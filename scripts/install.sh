@@ -9,7 +9,7 @@ sudo yum -y install unzip
 rpm -Uvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 sudo yum -y install yum-utils
 sudo yum-config-manager --enable epel
-sudo yum-config-manager --add-repo http://archive.cloudera.com/cdh5/redhat/6/x86_64/cdh/cloudera-cdh5.repo
+sudo yum-config-manager --add-repo http://184.73.217.71/cdh5/redhat/6/x86_64/cdh/cloudera-cdh5.repo
 sudo yum -y install fail2ban
 sudo yum -y install spark-core spark-master spark-worker spark-history-server
 sudo yum -y install java-1.7.0-openjdk-devel
@@ -40,14 +40,14 @@ sudo usermod -a -G supergroup root
 
 # Setup confd to share config across nodes
 sudo wget https://github.com/kelseyhightower/confd/releases/download/v0.6.3/confd-0.6.3-linux-amd64
-sudo mv confd-0.6.3-linux-amd64 /usr/local/bin/confd
-sudo chmod +x /usr/local/bin/confd
+sudo mv confd-0.6.3-linux-amd64 /usr/bin/confd
+sudo chmod +x /usr/bin/confd
 
 # Setup consul for confd backend
 sudo wget https://dl.bintray.com/mitchellh/consul/0.4.1_linux_amd64.zip
 sudo unzip 0.4.1_linux_amd64.zip
-sudo mv consul /usr/local/bin/consul
-sudo chmod +x /usr/local/bin/consul
+sudo mv consul /usr/bin/consul
+sudo chmod +x /usr/bin/consul
 sudo /bin/rm 0.4.1_linux_amd64.zip
 
 # Create data folder for consul
