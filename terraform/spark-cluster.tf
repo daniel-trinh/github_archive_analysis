@@ -8,7 +8,7 @@ variable "region" {
 }
 variable "amis" {
     default = {
-        us-east-1 = "ami-eebac086"
+        us-east-1 = "ami-40337a28"
     }
 }
 variable "instance_names" {
