@@ -1,0 +1,5 @@
+access_key = "<key goes here>"
+secret_key = "<key goes here>"
+ssh_pub_key = "<pub key contents of your local ssh key go here>"
+ssh_key_path = "<local file path to aws .pem key goes here>"
+default_ami_id = "<ami id of spark cluster image goes here>"

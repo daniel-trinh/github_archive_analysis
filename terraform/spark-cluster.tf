@@ -6,9 +6,11 @@ variable "ssh_pub_key" {}
 variable "region" {
     default = "us-east-1"
 }
+variable "default_ami_id" {
+}
 variable "amis" {
     default = {
-        us-east-1 = "ami-40337a28"
+        us-east-1 = "${var.default_ami_id}"
     }
 }
 variable "instance_names" {
@@ -46,6 +48,8 @@ resource "aws_instance" "data_master" {
         "sudo echo '${aws_instance.data_master.private_ip}' | sudo tee /etc/master_private_ip",
         "sudo echo '${lookup(var.instance_names, concat("instance", count.index))}' | sudo tee /etc/host_prefix",
         "sudo echo '${var.ssh_pub_key}' | sudo tee -a /root/.ssh/authorized_keys"
+        "sudo echo '${var.access_key}' | sudo tee -a /etc/access_key"
+        "sudo echo '${var.secret_key}' | sudo tee -a /etc/secret_key"
       ]
       connection {
         user = "ec2-user"
@@ -78,6 +82,8 @@ resource "aws_instance" "data_node" {
         "sudo echo '${aws_instance.data_master.private_ip}' | sudo tee /etc/master_private_ip",
         "sudo echo '${lookup(var.instance_names, concat("instance", count.index))}' | sudo tee /etc/host_prefix",
         "sudo echo '${var.ssh_pub_key}' | sudo tee -a /root/.ssh/authorized_keys"
+        "sudo echo '${var.access_key}' | sudo tee -a /etc/access_key"
+        "sudo echo '${var.secret_key}' | sudo tee -a /etc/secret_key"
       ]
       connection {
         user = "ec2-user"
