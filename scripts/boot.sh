@@ -27,19 +27,12 @@ if [ -z "$HOST_PREFIX" ]; then
   echoerr "/etc/host_prefix is empty, please populate with this cluster's master private IP"
   exit 1
 fi
+
 # Restart sshd
 /etc/init.d/sshd restart
 
 # Ignore overcommitment memory issues. This is a hack.
 # echo 1 > /proc/sys/vm/overcommit_memory
-
-mkdir src/
-cd src
-git clone https://github.com/daniel-trinh/github_archive_analysis.git
-
-# Run the conf.d setup code to create template files
-cd github_archive_analysis/scripts
-sh confd_setup.sh 2>&1 | tee /dev/null
 
 # modify /etc/hosts
 # NOTE: this gets populated with the IPs of the other nodes
@@ -59,11 +52,15 @@ echo $HOSTS_TEXT | sudo tee /etc/hosts
 
 # Run consul in the background
 touch /var/log/consul
-consul agent -server -bootstrap-expect 3 -data-dir /etc/consul | tee -a /var/log/consul > /dev/null &
+
+consul agent -server -bootstrap-expect 3 -data-dir /etc/consul > /var/log/consul 2>&1 &
+
+# This is to give consul agent time to boot, so that consul join will work.
+sleep 10
 
 # Have all nodes join the master
+# TODO: add check to make sure join was successful
 consul join "$MASTER_PRIVATE_IP:8301"
-
 
 # Run confd in background
 confd -interval 30 -backend consul -node 127.0.0.1:8500 > /var/log/confd 2>&1 &
@@ -74,11 +71,19 @@ confd -interval 30 -backend consul -node 127.0.0.1:8500 > /var/log/confd 2>&1 &
 # curl -X PUT -d "$PRIVATE_IP $HOST_PREFIX.danieltrinh.com $HOST_PREFIX" "http://localhost:8500/v1/kv/hosts/$HOST_PREFIX"
 
 ### Spark stuff
-
+PRIVATE_IP="$(ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/')"
 # TODO: move to confd .sh and run the .sh file
-if [ "$PRIVATE_IP" -eq "$MASTER_PRIVATE_IP" ]; then
+if [ "$PRIVATE_IP" == "$MASTER_PRIVATE_IP" ]; then
   service spark-master start
   service spark-worker start
 else
   service spark-worker start
 fi
+
+mkdir src/
+cd src
+git clone https://github.com/daniel-trinh/github_archive_analysis.git
+
+# Run the conf.d setup code to create template files
+cd github_archive_analysis/scripts
+sh confd_setup.sh

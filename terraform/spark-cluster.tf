@@ -17,7 +17,7 @@ resource "aws_instance" "data_master" {
     provisioner "remote-exec" {
       inline = [
         "sudo echo '${aws_instance.data_master.private_ip}' | sudo tee /etc/master_private_ip",
-        "sudo echo '${lookup(var.instance_names, concat("instance", count.index))}' | sudo tee /etc/host_prefix",
+        "sudo echo 'data.master' | sudo tee /etc/host_prefix",
         "sudo echo '${var.ssh_pub_key}' | sudo tee -a /root/.ssh/authorized_keys",
         "sudo echo '${var.access_key}' | sudo tee -a /etc/access_key",
         "sudo echo '${var.secret_key}' | sudo tee -a /etc/secret_key"
@@ -60,7 +60,7 @@ resource "aws_instance" "data_node" {
         "sudo echo '${var.secret_key}' | sudo tee -a /etc/secret_key"
       ]
       connection {
-        user = "root"
+        user = "ec2-user"
         key_file = "${var.ssh_private_key_path}"
       }
     }
