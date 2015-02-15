@@ -13,11 +13,10 @@ fi
 AWS_KEY="$(cat /etc/access_key)"
 AWS_SECRET_KEY="$(cat /etc/secret_key)"
 
-curl -X PUT -d "$PRIVATE_IP $HOST_PREFIX.danieltrinh.com $HOST_PREFIX" "http://localhost:8500/v1/kv/hosts/$HOST_PREFIX"
-
 # TODO: don't hardcode this when I actually have an environment
 # that isn't production
 curl -X PUT -d "production" "http://localhost:8500/v1/kv/environment"
 curl -X PUT -d "6000" "http://localhost:8500/v1/kv/fail2banconfig/bantime"
 curl -X PUT -d "$AWS_KEY" "http://localhost:8500/v1/kv/aws_key"
 curl -X PUT -d "$AWS_SECRET_KEY" "http://localhost:8500/v1/kv/aws_secret_key"
+curl -X PUT -d "$PRIVATE_IP $HOST_PREFIX.danieltrinh.com $HOST_PREFIX" "http://localhost:8500/v1/kv/hosts/$HOST_PREFIX"

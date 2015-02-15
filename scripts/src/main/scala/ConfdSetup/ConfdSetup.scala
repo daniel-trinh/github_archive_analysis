@@ -6,7 +6,7 @@ object ConfdSetup extends App {
   def createFiles: Unit = {
     val confdTomlDir = root/"etc"/"confd"/"conf.d"
     val confdTemplateDir = root/"etc"/"confd"/"templates"
-
+    val sourceDir = "scripts/confd/"
     mkdir! confdTomlDir
     mkdir! confdTemplateDir
 

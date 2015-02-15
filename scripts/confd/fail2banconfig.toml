@@ -1,0 +1,7 @@
+[template]
+src = "fail2banconfig.tmpl"
+dest = "/etc/fail2ban/jail.local"
+keys = [
+  "/fail2banconfig/bantime"
+]
+reload_cmd = "service fail2ban restart"
