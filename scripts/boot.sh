@@ -82,7 +82,7 @@ fi
 
 mkdir src/
 cd src
-git clone https://github.com/daniel-trinh/github_archive_analysis.git
+git clone git@github.com:daniel-trinh/github_archive_analysis.git
 
 # Run the conf.d setup code to create template files
 cd github_archive_analysis/scripts
