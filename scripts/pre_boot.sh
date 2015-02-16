@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo echo '
+sudo echo "
 # .bashrc
 
 # Source global definitions
@@ -11,9 +11,11 @@ fi
 # User specific aliases and functions
 
 export PATH=/bin:/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:$PATH
-export AWS_ACCESS_KEY_ID="$(cat /etc/access_key)"
-export AWS_SECRET_ACCESS_KEY="$(cat /etc/secret_key)"
-' | sudo tee -a /root/.bashrc
+export AWS_ACCESS_KEY_ID=\"$(cat /etc/access_key)\"
+export AWS_SECRET_ACCESS_KEY=\"$(cat /etc/secret_key)\"
+export PRIVATE_IP=\"$(ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/')\"
+export MASTER_PRIVATE_IP=\"$(cat /etc/master_private_ip)\"
+" | sudo tee -a /root/.bashrc
 
 
 # Replace code that prevents ssh via root

@@ -2,5 +2,6 @@
 src = "spark_env.tmpl"
 dest = "/etc/spark/conf/spark-env.sh"
 keys = [
+  /master_private_ip
 ]
 reload_cmd = "service spark-master condrestart && service spark-worker restart"

@@ -53,7 +53,7 @@
 ### === IMPORTANT ===
 ### Change the following to specify a real cluster's Master host
 ###
-export STANDALONE_SPARK_MASTER_HOST=`hostname`
+export STANDALONE_SPARK_MASTER_HOST={{ getv "/master_private_ip" }}
 
 export SPARK_MASTER_IP=$STANDALONE_SPARK_MASTER_HOST
 
