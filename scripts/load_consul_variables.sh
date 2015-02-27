@@ -21,3 +21,5 @@ curl -X PUT -d "$AWS_KEY" "http://localhost:8500/v1/kv/aws_key"
 curl -X PUT -d "$AWS_SECRET_KEY" "http://localhost:8500/v1/kv/aws_secret_key"
 curl -X PUT -d "$PRIVATE_IP $HOST_PREFIX.danieltrinh.com $HOST_PREFIX" "http://localhost:8500/v1/kv/hosts/$HOST_PREFIX"
 curl -X PUT -d "$MASTER_PRIVATE_IP" "http://localhost:8500/v1/kv/master_private_ip"
+
+confd -interval 30 -backend consul -node 127.0.0.1:8500 > /var/log/confd 2>&1 &

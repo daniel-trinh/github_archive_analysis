@@ -3,18 +3,30 @@
 echo "Installing a whole bunch of yum dependencies..."
 sudo yum -y install wget
 sudo yum -y localinstall https://dl.bintray.com/sbt/rpm/sbt-0.13.7.rpm
-sudo yum -y install git
 sudo yum -y install nc
 sudo yum -y install unzip
 rpm -Uvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+rpm -Uvh http://repo.webtatic.com/yum/centos/5/latest.rpm
 sudo yum -y install yum-utils
+sudo yum -y install gcc
 sudo yum-config-manager --enable epel
 sudo yum-config-manager --add-repo http://184.73.217.71/cdh5/redhat/6/x86_64/cdh/cloudera-cdh5.repo
+sudo yum -y groupinstall "Development Tools"
+sudo yum -y install gettext-devel openssl-devel perl-CPAN perl-devel zlib-devel
 sudo yum -y install fail2ban
 sudo yum -y install spark-core spark-master spark-worker spark-history-server
 sudo yum -y install java-1.7.0-openjdk-devel
 sudo yum -y install hadoop-client
 sudo yum clean all
+
+wget http://kernel.org/pub/software/scm/git/git-2.3.0.tar.gz
+tar -xvzf git-2.3.0.tar.gz
+cd git-2.3.0
+./configure --prefix=/usr/bin
+sudo make
+sudo make install
+sudo rm -rf ../git-2.3.0
+sudo rm ../git-2.3.0.tar.gz
 
 # Download cloudera manager setup. only needed on one node
 # wget http://archive.cloudera.com/cm5/installer/latest/cloudera-manager-installer.bin

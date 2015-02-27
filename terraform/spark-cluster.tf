@@ -77,25 +77,15 @@ resource "aws_instance" "data_node" {
     }
 }
 
-resource "aws_eip" "ip_master" {
-    instance = "${aws_instance.data_master.id}"
-}
-resource "aws_eip" "ip_worker1" {
-    instance = "${aws_instance.data_node.0.id}"
-}
-resource "aws_eip" "ip_worker2" {
-    instance = "${aws_instance.data_node.1.id}"
-}
-
 output "Message" {
   value = "Manually ssh and run ../scripts/load_consul_variables.sh on the following IPs"
 }
 output "ip_master" {
-  value = "${aws_eip.ip_master.public_ip}"
+  value = "${aws_instance.data_master.public_ip}"
 }
 output "ip_worker1" {
-  value = "${aws_eip.ip_worker1.public_ip}"
+  value = "${aws_instance.data_node.0.public_ip}"
 }
 output "ip_worker2" {
-  value = "${aws_eip.ip_worker2.public_ip}"
+  value = "${aws_instance.data_node.1.public_ip}"
 }

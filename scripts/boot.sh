@@ -1,5 +1,22 @@
 #!/bin/bash
 
+cat << EOF | sudo tee /root/.bashrc
+# .bashrc
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+  . /etc/bashrc
+fi
+# User specific aliases and functions
+export PATH=/bin:/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:$PATH
+export AWS_ACCESS_KEY_ID="$(cat /etc/access_key)"
+export AWS_SECRET_ACCESS_KEY="$(cat /etc/secret_key)"
+export PRIVATE_IP="$(ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/')"
+export MASTER_PRIVATE_IP="$(cat /etc/master_private_ip)"
+EOF
+
+source /root/.bashrc
+
 # TODO: move into confd
 # export SBT_OPTS="-Xmx512M -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=512M -Xss2M  -Duser.timezone=GMT"
 # export HADOOP_HOME="/opt/cloudera/parcels/CDH/lib/hadoop/etc/hadoop"
@@ -62,6 +79,8 @@ sleep 10
 # TODO: add check to make sure join was successful
 consul join "$MASTER_PRIVATE_IP:8301"
 
+sleep 10
+
 # Run confd in background
 confd -interval 30 -backend consul -node 127.0.0.1:8500 > /var/log/confd 2>&1 &
 
@@ -82,8 +101,7 @@ fi
 
 mkdir src/
 cd src
-git clone git@github.com:daniel-trinh/github_archive_analysis.git
-
+git clone https://github.com/daniel-trinh/github_archive_analysis.git
 # Run the conf.d setup code to create template files
 cd github_archive_analysis/scripts
 sh confd_setup.sh
