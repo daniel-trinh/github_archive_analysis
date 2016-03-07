@@ -13,9 +13,9 @@ Code for setting up a 3 node spark cluster.
 * SSH into all nodes, and run `load_consul_variables.sh` under the scripts folder. This is to load variables into consul for confd to update configuration files.
 
 ## Things installed onto the cluster
-* Scala via sbt
+* Spark (of course)
+* Scala via sbt, Ruby, and Golang
 * fail2ban, to prevent random botnets from trying to brute force login to your server
-* Spark
 * Consul, fully connected
 * Confd
 
