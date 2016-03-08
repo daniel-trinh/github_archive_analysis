@@ -9,7 +9,7 @@ variable "region" {
 
 variable "amis" {
     default = {
-        us-east-1 = "ami-9ac195f2"
+        us-east-1 = "ami-afe3d9c5"
     }
 }
 
