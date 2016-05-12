@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 	. "time"
+"io/ioutil"
 )
 
 var RootCmd = &cobra.Command{
@@ -27,8 +28,18 @@ var daemonCmd = &cobra.Command{
 	Long:  "Acts as a polling daemon to the archive, uploading to S3 periodically.",
 }
 
-var startSkew, endSkew, delay, period Duration
-var parallelism, retries int
+var reposCmd = &cobra.Command{
+	Use: "repos",
+	Short: "Stream github repo info to stdout",
+	Long: "Stream github repository information to stdout in json, possibly gzipped and scoped by language",
+}
+
+var (
+	disableLogs, gzipEnabled bool
+	language, githubToken string
+	startSkew, endSkew, delay, period Duration
+	parallelism, retries, since, limit int
+)
 
 func backfill(cmd *cobra.Command, args []string) {
 	c, err := New("github-archive-data")
@@ -79,8 +90,15 @@ func init() {
 
 	backfillCmd.Run = backfill
 	daemonCmd.Run = daemon
-	RootCmd.AddCommand(backfillCmd, daemonCmd)
+	reposCmd.Run = repos
+	RootCmd.AddCommand(backfillCmd, daemonCmd, reposCmd)
 
+	RootCmd.Flags().BoolVarP(&disableLogs,
+		"disable_logs",
+		"d",
+		false,
+		"If present, will disable any logs. Useful when running a command using stdout to report results.",
+	)
 	backfillCmd.Flags().DurationVarP(&startSkew,
 		"start_skew",
 		"s",
@@ -115,7 +133,7 @@ func init() {
 	daemonCmd.Flags().DurationVarP(&period,
 		"period",
 		"p",
-		30*Minute,
+		30 * Minute,
 		"Polling period",
 	)
 	daemonCmd.Flags().IntVarP(&retries,
@@ -123,6 +141,37 @@ func init() {
 		"r",
 		3,
 		"How many times to retry per hourly file",
+	)
+
+	reposCmd.Flags().IntVarP(&since,
+		"since",
+		"s",
+		0,
+		"Last github repo id to start querying from",
+	)
+	reposCmd.Flags().StringVarP(&githubToken,
+		"github_token",
+		"g",
+		"",
+		"Github API Token for sending repo requests. Required.",
+	)
+	reposCmd.Flags().IntVarP(&limit,
+		"limit",
+		"l",
+		0,
+		"How many repos to fetch before stopping.",
+	)
+	reposCmd.Flags().BoolVarP(&gzipEnabled,
+		"gzip",
+		"z",
+		false,
+		"Whether or not to compress the data before writing to stdout",
+	)
+	reposCmd.Flags().StringVarP(&language,
+		"language",
+		"p",
+		"",
+		"Filter repos by primary programming language",
 	)
 }
 
@@ -132,4 +181,9 @@ func main() {
 		fmt.Println(err)
 		os.Exit(-1)
 	}
+
+	if disableLogs {
+		log.SetOutput(ioutil.Discard)
+	}
+
 }
